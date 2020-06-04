@@ -12,5 +12,8 @@ class Convertor {
 		var numRatio = parseFloat(nums[1])/parseFloat(nums[0])
 		return new Convertor(type, unit1, unit2, function(v){return v*numRatio})
 	}
-	
+
+	static fromRatioPair(type, unit1, unit2, ratio) {
+		return [Convertor.fromRatio(type, unit1, unit2, ratio), Convertor.fromRatio(type, unit2, unit1, ratio.split(":").reverse().join(":"))]
+	}
 }
