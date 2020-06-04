@@ -9,7 +9,8 @@ class Convertor {
 
 	static fromRatio(type, unit1, unit2, ratio) { // Ratio comes in the form "x:y", (x for unit1, y for unit2)
 		var nums = ratio.split(":")
-		var numRatio = parseFloat(nums[0])/parseFloat(nums[1])
-		return constructor(type, unit1, unit2, function(v){return numRatio*v})
+		var numRatio = parseFloat(nums[1])/parseFloat(nums[0])
+		return new Convertor(type, unit1, unit2, function(v){return v*numRatio})
 	}
+	
 }
