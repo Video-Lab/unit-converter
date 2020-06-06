@@ -155,3 +155,64 @@ class ConversionGraph {
   }
 
 }
+
+UNIT_TABLE = {
+	"pounds": "lb",
+	"kilograms": "kg",
+	"stone": "s",
+	"inches": "in",
+	"yards": "yd",
+	"centimeters": "cm",
+	"meters": "m",
+	"kilometers": "km",
+	"miles per hour": "mph",
+	"kilometers per hour": "kph",
+	"knots": "kt",
+	"farenheit": "F",
+	"celsius": "C",
+	"kelvin": "K",
+	"AED": "AED",
+	"GBP": "GBP",
+	"USD": "USD",
+	"gregorian calendar": "gregorian",
+	"julian calendar": "julian"
+}
+
+CONVERSIONS = {
+	mass: new ConversionGraph(),
+	length: new ConversionGraph(),
+	speed: new ConversionGraph(),
+	temperature: new ConversionGraph(),
+	currency: new ConversionGraph(),
+	date: new ConversionGraph(),
+}
+
+CONVERSIONS.mass.addConversionFromRatio("kilograms", "pounds", "1:2.20462")
+CONVERSIONS.mass.addConversionFromRatio("grams", "kilograms", "1000:1")
+CONVERSIONS.mass.addConversionFromRatio("kilograms", "stone", "1:0.157473")
+
+CONVERSIONS.length.addConversionFromRatio("inches", "centimeters", "0.393701:1")
+CONVERSIONS.length.addConversionFromRatio("centimeters", "meters", "100:1")
+CONVERSIONS.length.addConversionFromRatio("meters", "yards", "1:1.09361")
+CONVERSIONS.length.addConversionFromRatio("meters", "miles", "1:0.000621371")
+CONVERSIONS.length.addConversionFromRatio("meters", "kilometers", "1000:1")
+
+CONVERSIONS.speed.addConversionFromRatio("miles per hour", "kilometers per hour", "")
+CONVERSIONS.speed.addConversionFromRatio("knots", "kilometers per hour", "")
+
+CONVERSIONS.temperature.addConversion("celsius", "farenheit", v => (1.8*v)+32)
+CONVERSIONS.temperature.addConversion("farenheit", "celsius", v => (v-32)/1.8)
+CONVERSIONS.temperature.addConversion("celsius", "kelvin", v => v-273)
+CONVERSIONS.temperature.addConversion("kelvin", "celsius", v => v+273)
+
+CONVERSIONS.currency.addConversionFromRatio("aed", "usd", "3.67:1")
+CONVERSIONS.currency.addConversionFromRatio("usd", "gbp", "1:0.79")
+
+CONVERSIONS.date.addConversion("gregorian calendar", "julian calendar", function(date){
+	return Math.floor( new Date(date) / 86400000 + 2440587.5)
+
+})
+
+CONVERSIONS.date.addConversion("julian calendar", "gregorian calendar", function(jd){
+	return new Date(Math.round((jd - 2440587.5) * 86400000)+172800000).toISOString().split("T")[0]
+})
