@@ -1,3 +1,8 @@
+var typeDropdown = document.querySelector("#type-dropdown")
+var unit1Dropdown = document.querySelector("#unit-1-dropdown")
+var unit2Dropdown = document.querySelector("#unit-2-dropdown")
+
+
 class PriorityQueue {
     constructor(){
         this.values = [];
@@ -68,23 +73,59 @@ class Node {
     }
 }
 
+class Unit {
+  constructor(name, input_type='text', unit='', unit_pretty=true) {
+    this.name = name;
+    this.input_type = input_type;
+    this.unit = unit;
+
+    this.pretty_name = this.keyToString(unit=unit_pretty)
+  }
+
+  keyToString(unit=true) {
+    var split = this.name.split(" ")
+    for(var i = 0; i < split.length; i++) {
+      split[i] = split[i][0].toUpperCase() + split[i].slice(1,split[i].length)    
+    }
+    var str = split.join(" ")
+    if(unit) str = str + " (" + this.unit + ")"
+    return str
+  }
+
+}
+
 
 class ConversionGraph { 
    constructor() {
     this.adjacencyList = {};
+    this.units = [];
   }
 
+  addUnit(name, input_type='text', unit='', unit_pretty=true) {
+    this.units.push(new Unit(name, input_type, unit, unit_pretty))
+    this.adjacencyList[name] = [];
+  }
+  
   addConversion(unit1, unit2, conversion) {
-  	if(!this.adjacencyList[unit1]) this.adjacencyList[unit1] = [];
+  	if(!this.adjacencyList[unit1]) {
+      this.adjacencyList[unit1] = [];
+      this.units.push(new Unit(unit1))
+    }
     this.adjacencyList[unit1].push({val: unit2, convert: conversion})
   }
 
   addConversionFromRatio(unit1, unit2, ratio, bidir=true) {
   	var ratioNum = parseFloat(ratio.split(":")[1])/parseFloat(ratio.split(":")[0])
-  	if(!this.adjacencyList[unit1]) this.adjacencyList[unit1] = [];
+    if(!this.adjacencyList[unit1]) {
+      this.adjacencyList[unit1] = [];
+      this.units.push(new Unit(unit1))
+    }
   	this.addConversion(unit1, unit2, v => ratioNum*v)
   	if(bidir) {
-  		if(!this.adjacencyList[unit2]) this.adjacencyList[unit2] = [];
+      if(!this.adjacencyList[unit2]) {
+        this.adjacencyList[unit2] = [];
+        this.units.push(new Unit(unit2))
+      }
   		this.addConversion(unit2, unit1, v => (1/ratioNum)*v)
   	}
   }
@@ -156,6 +197,24 @@ class ConversionGraph {
 
 }
 
+Date.prototype.addHours = function(hours) {
+  this.setTime(this.getTime() + (hours*60*60*1000));
+  return this;
+}
+
+
+function reverseObject(obj) {
+  var reverseObj = {};
+  for(var k in obj) {
+    reverseObj[obj[k].toString()] = k;
+  }
+  return reverseObj;
+}
+
+function addTypes() {
+
+}
+
 UNIT_TABLE = {
 	"pounds": "lb",
 	"kilograms": "kg",
@@ -177,6 +236,8 @@ UNIT_TABLE = {
 	"gregorian calendar": "gregorian",
 	"julian calendar": "julian"
 }
+
+REVERSE_UNIT_TABLE = reverseObject(UNIT_TABLE)
 
 CONVERSIONS = {
 	mass: new ConversionGraph(),
@@ -209,10 +270,12 @@ CONVERSIONS.currency.addConversionFromRatio("aed", "usd", "3.67:1")
 CONVERSIONS.currency.addConversionFromRatio("usd", "gbp", "1:0.79")
 
 CONVERSIONS.date.addConversion("gregorian calendar", "julian calendar", function(date){
-	return Math.floor( new Date(date) / 86400000 + 2440587.5)
+	return Math.floor( new Date(date).addHours(12) / 86400000 + 2440587.5)
 
 })
 
 CONVERSIONS.date.addConversion("julian calendar", "gregorian calendar", function(jd){
-	return new Date(Math.round((jd - 2440587.5) * 86400000)+172800000).toISOString().split("T")[0]
+	return new Date(Math.round((jd - 2440587.5) * 86400000)).toISOString().split("T")[0]
 })
+
+
