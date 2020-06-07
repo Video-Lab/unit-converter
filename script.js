@@ -6,7 +6,6 @@ var unit2Input = document.querySelector("#unit-2-input")
 var convertButton = document.querySelector("#convert-button")
 var valuesContainer = document.querySelector("#values-container")
 
-
 class PriorityQueue {
     constructor(){
         this.values = [];
@@ -217,7 +216,7 @@ Date.prototype.addHours = function(hours) {
   return this;
 }
 
-Number.prototype.countDecimals = function () {
+Number.prototype.countDecimals = function() {
   if(Math.floor(this.valueOf()) === this.valueOf()) {
     return 0;
   }
@@ -270,7 +269,7 @@ function populateInputs(type) {
   unit2Dropdown.value = unit2Dropdown.children[1].value
   modifyInput(unit1Dropdown.value, unit1Input)
   modifyInput(unit2Dropdown.value, unit2Input)
-  valuesContainer.style.display = "block";
+  valuesContainer.style.display = "flex";
 
 }
 
@@ -289,6 +288,7 @@ function modifyInput(inputKey, inputEl) {
     prevValue = ""
   }
   inputEl.setAttribute("type", unit.input_type)
+  inputEl.setAttribute("placeholder", unit.pretty_name)
   if(prevValue.value != "") {
     if(inputEl.getAttribute("id") === "unit-1-input") {
       runConversion("up")
@@ -309,9 +309,11 @@ function runConversion(direction) {
       converted = CONVERSIONS[typeDropdown.value].convert(unit2Name, unit1Name, unit2Val)
       if(typeof converted === "number") {
         if(converted.countDecimals() > 0) {
-          converted = converted.toFixed(5)
+          converted = parseFloat(converted.toFixed(6)).toString()
         }
       }     
+    } else {
+      converted = ""
     }
 
     if(converted !== undefined) unit1Input.value = converted
@@ -320,11 +322,14 @@ function runConversion(direction) {
       converted = CONVERSIONS[typeDropdown.value].convert(unit1Name, unit2Name, unit1Val)
       if(typeof converted === "number") {
         if(converted.countDecimals() > 0) {
-          converted = converted.toFixed(5)
+          converted = parseFloat(converted.toFixed(6)).toString()
         }
       } 
-      if(converted !== undefined) unit2Input.value = converted     
+         
+    } else {
+      converted = ""
     }
+    if(converted !== undefined) unit2Input.value = converted  
   }
 
 }
@@ -366,18 +371,24 @@ UNIT_RELATIONS = {
   'length': ["inches", "centimeters", "meters", "yards", "miles", "kilometers"],
   'speed': ["miles per hour", "kilometers per hour", "knots"],
   'temperature': ["celsius", "farenheit", "kelvin"],
-  'currency': ["aed", "usd", "gbp"],
+  'currency': ["AED", "USD", "GBP"],
   'date': ["gregorian calendar", "julian calendar"]
 }
 
 for(var k in UNIT_RELATIONS) {
-  if(k !== "date") {
-  for(var i = 0; i < UNIT_RELATIONS[k].length; i++) {
-      CONVERSIONS[k].addUnit(UNIT_RELATIONS[k][i], 'text', UNIT_TABLE[UNIT_RELATIONS[k][i]])
-    }
-  } else {
+  if(k === "date") {
     CONVERSIONS.date.addUnit("gregorian calendar", "date", unit=new Date().toISOString().split("T")[0], unit_pretty=false)
     CONVERSIONS.date.addUnit("julian calendar", "text", unit=UNIT_TABLE["julian calendar"], unit_pretty=false)
+
+  } else if(k === "currency") {
+    for(var i = 0; i < UNIT_RELATIONS[k].length; i++) {
+      CONVERSIONS[k].addUnit(UNIT_RELATIONS[k][i], 'text', '', false)
+    }
+  } 
+  else {
+    for(var i = 0; i < UNIT_RELATIONS[k].length; i++) {
+        CONVERSIONS[k].addUnit(UNIT_RELATIONS[k][i], 'text', UNIT_TABLE[UNIT_RELATIONS[k][i]])
+      }
   }
 }
 
@@ -399,8 +410,8 @@ CONVERSIONS.temperature.addConversion("farenheit", "celsius", v => (parseFloat(v
 CONVERSIONS.temperature.addConversion("celsius", "kelvin", v => parseFloat(v)-273)
 CONVERSIONS.temperature.addConversion("kelvin", "celsius", v => parseFloat(v)+273)
 
-CONVERSIONS.currency.addConversionFromRatio("aed", "usd", "3.67:1")
-CONVERSIONS.currency.addConversionFromRatio("usd", "gbp", "1:0.79")
+CONVERSIONS.currency.addConversionFromRatio("AED", "USD", "3.6730:1")
+CONVERSIONS.currency.addConversionFromRatio("USD", "GBP", "1:0.79")
 
 CONVERSIONS.date.addConversion("gregorian calendar", "julian calendar", function(date){
 	return Math.floor( new Date(date).addHours(12) / 86400000 + 2440587.5)

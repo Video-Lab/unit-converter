@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
+	<link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap" rel="stylesheet">
 	<link rel="stylesheet" type="text/css" href="index.css">
 	<title>Unit Converter</title>
 </head>
@@ -9,27 +10,30 @@
 
 <h1 class="title">Unit Converter</h1>
 
-<div id="type-container" class="container">
-	<label class="input-label" for="type">Type:</label>
-	<select name="type" id="type-dropdown" class="value-dropdown">
-	</select>
-</div>
 
-<div id="values-container" class="container">
-	<div class="value-container" id="in-value-container">
-		<input type="text" id="unit-1-input" name="unit-1-input" placeholder="Enter value">
-		<select name="in-unit" id="unit-1-dropdown" class="value-dropdown">
-			<option value="">example</option>
+<div class="main">
+	<div id="type-container" class="container">
+		<label class="input-label" for="type">Type:</label>
+		<select name="type" id="type-dropdown" class="value-dropdown">
 		</select>
 	</div>
-	<div class="value-container" id="out-value-container">
-		<input type="text" id="unit-2-input" name="unit-2-input">
-		<select name="in-unit"  id="unit-2-dropdown" class="value-dropdown">
-			<option value="">example</option>
-		</select>		
-	</div>
-	<button id="convert-button">Convert</button>
+
+	<div id="values-container" class="container">
+		<div class="value-container" id="in-value-container">
+			<input type="text" id="unit-1-input" name="unit-1-input" placeholder="Enter value">
+			<select name="in-unit" id="unit-1-dropdown" class="value-dropdown">
+				<option value="">example</option>
+			</select>
+		</div>
+		<div class="value-container" id="out-value-container">
+			<input type="text" id="unit-2-input" name="unit-2-input">
+			<select name="in-unit"  id="unit-2-dropdown" class="value-dropdown">
+				<option value="">example</option>
+			</select>		
+		</div>
+	</div>	
 </div>
+
 
 <script type="text/javascript" src="script.js"></script>
 </body>
