@@ -331,6 +331,33 @@ function runConversion(direction) {
 
 }
 
+function swap(){
+  var unit1Val = unit1Input.value;
+  var unit2Val = unit2Input.value;
+  var unit1DropVal = unit1Dropdown.value;
+  var unit2DropVal = unit2Dropdown.value;
+  var unit1;
+  var unit2;
+  for(var i = 0; i < CONVERSIONS[typeDropdown.value].units.length; i++) {
+    var unit = CONVERSIONS[typeDropdown.value].units[i];
+    if(unit.name === unit1DropVal) {
+      unit1 = unit;
+    } else if(unit.name === unit2DropVal) {
+      unit2 = unit;
+    }
+  }
+
+  unit1Dropdown.value = unit2DropVal;
+  unit2Dropdown.value = unit1DropVal;
+  unit1Input.value = ''
+  unit2Input.value = ''
+  modifyInput(unit2DropVal, unit1Input);
+  modifyInput(unit1DropVal, unit2Input);
+
+  unit1Input.value = unit2Val;
+  unit2Input.value = unit1Val;
+}
+
 
 var typeDropdown = document.querySelector("#type-dropdown");
 var unit1Dropdown = document.querySelector("#unit-1-dropdown");
@@ -339,6 +366,7 @@ var unit1Input = document.querySelector("#unit-1-input");
 var unit2Input = document.querySelector("#unit-2-input");
 var convertButton = document.querySelector("#convert-button");
 var valuesContainer = document.querySelector("#values-container");
+swapIcon = document.querySelector("#swap-icon")
 
 UNIT_TABLE = {
 	"pounds": "lb",
@@ -453,6 +481,10 @@ function addEventListeners(){
 
   unit2Input.addEventListener("input", function(){
     runConversion("up")
+  })
+
+  swapIcon.addEventListener("click", function(){
+    swap()
   })
 }
 
