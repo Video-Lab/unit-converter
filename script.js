@@ -282,9 +282,14 @@ function modifyInput(inputKey, inputEl) {
     }
   }
 
+  var prevValue = inputEl.value
+  var prevType = inputEl.getAttribute("type")
+  if(prevType != unit.input_type) {
+    inputEl.value = ""
+    prevValue = ""
+  }
   inputEl.setAttribute("type", unit.input_type)
-  inputEl.setAttribute("placeholder", unit.pretty_name)
-  if(inputEl.value != "") {
+  if(prevValue.value != "") {
     if(inputEl.getAttribute("id") === "unit-1-input") {
       runConversion("up")
     } else {
@@ -300,21 +305,26 @@ function runConversion(direction) {
   var unit2Name = unit2Dropdown.value
   var converted;
   if(direction === "up") {
-    converted = CONVERSIONS[typeDropdown.value].convert(unit2Name, unit1Name, unit2Val)
-    if(typeof converted === "number") {
-      if(converted.countDecimals() > 0) {
-        converted = converted.toFixed(5)
-      }
+    if(unit2Val !== "") {
+      converted = CONVERSIONS[typeDropdown.value].convert(unit2Name, unit1Name, unit2Val)
+      if(typeof converted === "number") {
+        if(converted.countDecimals() > 0) {
+          converted = converted.toFixed(5)
+        }
+      }     
     }
+
     if(converted !== undefined) unit1Input.value = converted
   } else if(direction === "down") {
-    converted = CONVERSIONS[typeDropdown.value].convert(unit1Name, unit2Name, unit1Val)
-    if(typeof converted === "number") {
-      if(converted.countDecimals() > 0) {
-        converted = converted.toFixed(5)
-      }
+    if(unit1Val !== "") {
+      converted = CONVERSIONS[typeDropdown.value].convert(unit1Name, unit2Name, unit1Val)
+      if(typeof converted === "number") {
+        if(converted.countDecimals() > 0) {
+          converted = converted.toFixed(5)
+        }
+      } 
+      if(converted !== undefined) unit2Input.value = converted     
     }
-    if(converted !== undefined) unit2Input.value = converted
   }
 
 }
