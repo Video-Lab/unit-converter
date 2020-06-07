@@ -78,16 +78,25 @@ class Unit {
     this.name = name;
     this.input_type = input_type;
     this.unit = unit;
-
+    this.parser = this.getParser()
     this.pretty_name = this.keyToString(unit=unit_pretty)
   }
 
-  keyToString(unit=true) {
-    var split = this.name.split(" ")
-    for(var i = 0; i < split.length; i++) {
-      split[i] = split[i][0].toUpperCase() + split[i].slice(1,split[i].length)    
+
+  getParser() {
+    if(this.input_type === "text") {
+      return "parseFloat"
+    } else if(this.input_type === "date") {
+      return ""
     }
-    var str = split.join(" ")
+  }
+
+  keyToString(unit=true) {
+    var splitName = this.name.split(" ")
+    for(var i = 0; i < splitName.length; i++) {
+      splitName[i] = splitName[i][0].toUpperCase() + splitName[i].slice(1,splitName[i].length)    
+    }
+    var str = splitName.join(" ")
     if(unit) str = str + " (" + this.unit + ")"
     return str
   }
@@ -105,7 +114,16 @@ class ConversionGraph {
     this.units.push(new Unit(name, input_type, unit, unit_pretty))
     this.adjacencyList[name] = [];
   }
-  
+
+  doesExist(unit) {
+    for(var i = 0; i < this.units.length; i++) {
+      if(this.units[i].name === unit) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   addConversion(unit1, unit2, conversion) {
   	if(!this.adjacencyList[unit1]) {
       this.adjacencyList[unit1] = [];
@@ -237,8 +255,6 @@ UNIT_TABLE = {
 	"julian calendar": "julian"
 }
 
-REVERSE_UNIT_TABLE = reverseObject(UNIT_TABLE)
-
 CONVERSIONS = {
 	mass: new ConversionGraph(),
 	length: new ConversionGraph(),
@@ -246,6 +262,26 @@ CONVERSIONS = {
 	temperature: new ConversionGraph(),
 	currency: new ConversionGraph(),
 	date: new ConversionGraph(),
+}
+
+UNIT_RELATIONS = {
+  'mass': ["kilograms", "grams", "stone"],
+  'length': ["inches", "centimeters", "meters", "yards", "miles", "kilometers"],
+  'speed': ["miles per hour", "kilometers per hour", "knots"],
+  'temperature': ["celsius", "farenheit", "kelvin"],
+  'currency': ["aed", "usd", "gbp"],
+  'date': ["gregorian calendar", "julian calendar"]
+}
+
+for(var k in UNIT_RELATIONS) {
+  if(k !== "date") {
+  for(var i = 0; i < UNIT_RELATIONS[k].length; i++) {
+      CONVERSIONS[k].addUnit(UNIT_RELATIONS[k][i], 'text', UNIT_TABLE[UNIT_RELATIONS[k][i]])
+    }
+  } else {
+    CONVERSIONS.date.addUnit("gregorian calendar", "date", unit=new Date().toISOString().split("T")[0], unit_pretty=false)
+    CONVERSIONS.date.addUnit("julian calendar", "date", unit=UNIT_TABLE["julian calendar"])
+  }
 }
 
 CONVERSIONS.mass.addConversionFromRatio("kilograms", "pounds", "1:2.20462")
