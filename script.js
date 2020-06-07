@@ -1,6 +1,10 @@
 var typeDropdown = document.querySelector("#type-dropdown")
 var unit1Dropdown = document.querySelector("#unit-1-dropdown")
 var unit2Dropdown = document.querySelector("#unit-2-dropdown")
+var unit1Input = document.querySelector("#unit-1-input")
+var unit2Input = document.querySelector("#unit-2-input")
+var convertButton = document.querySelector("#convert-button")
+var valuesContainer = document.querySelector("#values-container")
 
 
 class PriorityQueue {
@@ -78,31 +82,24 @@ class Unit {
     this.name = name;
     this.input_type = input_type;
     this.unit = unit;
-    this.parser = this.getParser()
     this.pretty_name = this.keyToString(unit=unit_pretty)
   }
 
-
-  getParser() {
-    if(this.input_type === "text") {
-      return "parseFloat"
-    } else if(this.input_type === "date") {
-      return ""
-    }
-  }
-
   keyToString(unit=true) {
-    var splitName = this.name.split(" ")
-    for(var i = 0; i < splitName.length; i++) {
-      splitName[i] = splitName[i][0].toUpperCase() + splitName[i].slice(1,splitName[i].length)    
-    }
-    var str = splitName.join(" ")
+    var str = capitalize(this.name)
     if(unit) str = str + " (" + this.unit + ")"
     return str
   }
 
 }
 
+function capitalize(str) {
+  var splitName = str.split(" ")
+  for(var i = 0; i < splitName.length; i++) {
+    splitName[i] = splitName[i][0].toUpperCase() + splitName[i].slice(1,splitName[i].length)    
+  }
+  return splitName.join(" ") 
+}
 
 class ConversionGraph { 
    constructor() {
@@ -220,6 +217,12 @@ Date.prototype.addHours = function(hours) {
   return this;
 }
 
+Number.prototype.countDecimals = function () {
+  if(Math.floor(this.valueOf()) === this.valueOf()) {
+    return 0;
+  }
+  return this.toString().split(".")[1].length || 0; 
+}
 
 function reverseObject(obj) {
   var reverseObj = {};
@@ -229,7 +232,90 @@ function reverseObject(obj) {
   return reverseObj;
 }
 
-function addTypes() {
+function setupPage() {
+  populateTypes()
+  clearInputs()
+  valuesContainer.style.display = 'none';
+  populateInputs(typeDropdown.value)
+
+}
+
+function clearInputs() {
+  unit1Input.value = '';
+  unit1Dropdown.innerHTML = '';
+  unit2Input.value = '';
+  unit2Dropdown.innerHTML = '';
+}
+
+function populateTypes() {
+  for(var type in UNIT_RELATIONS) {
+    var typeEl = document.createElement("OPTION")
+    typeEl.setAttribute("value", type)
+    typeEl.innerText = capitalize(type)
+    typeDropdown.appendChild(typeEl)
+  }
+}
+
+function populateInputs(type) {
+  clearInputs()
+  for(var i = 0; i < CONVERSIONS[type].units.length; i++) {
+    var unit = CONVERSIONS[type].units[i];
+    var unitEl = document.createElement("OPTION")
+    unitEl.setAttribute("value", unit.name)
+    unitEl.innerText = capitalize(unit.name)
+    unit1Dropdown.appendChild(unitEl)
+  }
+
+  unit2Dropdown.innerHTML = unit1Dropdown.innerHTML
+  unit2Dropdown.value = unit2Dropdown.children[1].value
+  modifyInput(unit1Dropdown.value, unit1Input)
+  modifyInput(unit2Dropdown.value, unit2Input)
+  valuesContainer.style.display = "block";
+
+}
+
+function modifyInput(inputKey, inputEl) {
+  var unit;
+  for(var i = 0; i < CONVERSIONS[typeDropdown.value].units.length; i++) {
+    if(CONVERSIONS[typeDropdown.value].units[i].name === inputKey) {
+      unit = CONVERSIONS[typeDropdown.value].units[i]
+    }
+  }
+
+  inputEl.setAttribute("type", unit.input_type)
+  inputEl.setAttribute("placeholder", unit.pretty_name)
+  if(inputEl.value != "") {
+    if(inputEl.getAttribute("id") === "unit-1-input") {
+      runConversion("up")
+    } else {
+      runConversion("down")
+    }
+  }
+}
+
+function runConversion(direction) {
+  var unit1Val = unit1Input.value
+  var unit2Val = unit2Input.value
+  var unit1Name = unit1Dropdown.value
+  var unit2Name = unit2Dropdown.value
+  var converted;
+  if(direction === "up") {
+    converted = CONVERSIONS[typeDropdown.value].convert(unit2Name, unit1Name, unit2Val)
+    if(typeof converted === "number") {
+      if(converted.countDecimals() > 0) {
+        converted = converted.toFixed(5)
+      }
+    }
+    if(converted !== undefined) unit1Input.value = converted
+  } else if(direction === "down") {
+    converted = CONVERSIONS[typeDropdown.value].convert(unit1Name, unit2Name, unit1Val)
+    if(typeof converted === "number") {
+      if(converted.countDecimals() > 0) {
+        converted = converted.toFixed(5)
+      }
+    }
+    if(converted !== undefined) unit2Input.value = converted
+  }
 
 }
 
@@ -241,6 +327,7 @@ UNIT_TABLE = {
 	"yards": "yd",
 	"centimeters": "cm",
 	"meters": "m",
+  "grams": "g",
 	"kilometers": "km",
 	"miles per hour": "mph",
 	"kilometers per hour": "kph",
@@ -265,7 +352,7 @@ CONVERSIONS = {
 }
 
 UNIT_RELATIONS = {
-  'mass': ["kilograms", "grams", "stone"],
+  'mass': ["kilograms", "grams", "stone", "pounds"],
   'length': ["inches", "centimeters", "meters", "yards", "miles", "kilometers"],
   'speed': ["miles per hour", "kilometers per hour", "knots"],
   'temperature': ["celsius", "farenheit", "kelvin"],
@@ -280,7 +367,7 @@ for(var k in UNIT_RELATIONS) {
     }
   } else {
     CONVERSIONS.date.addUnit("gregorian calendar", "date", unit=new Date().toISOString().split("T")[0], unit_pretty=false)
-    CONVERSIONS.date.addUnit("julian calendar", "date", unit=UNIT_TABLE["julian calendar"])
+    CONVERSIONS.date.addUnit("julian calendar", "text", unit=UNIT_TABLE["julian calendar"], unit_pretty=false)
   }
 }
 
@@ -294,13 +381,13 @@ CONVERSIONS.length.addConversionFromRatio("meters", "yards", "1:1.09361")
 CONVERSIONS.length.addConversionFromRatio("meters", "miles", "1:0.000621371")
 CONVERSIONS.length.addConversionFromRatio("meters", "kilometers", "1000:1")
 
-CONVERSIONS.speed.addConversionFromRatio("miles per hour", "kilometers per hour", "")
-CONVERSIONS.speed.addConversionFromRatio("knots", "kilometers per hour", "")
+CONVERSIONS.speed.addConversionFromRatio("miles per hour", "kilometers per hour", "1:1.60934")
+CONVERSIONS.speed.addConversionFromRatio("knots", "kilometers per hour", "1:1.852")
 
-CONVERSIONS.temperature.addConversion("celsius", "farenheit", v => (1.8*v)+32)
-CONVERSIONS.temperature.addConversion("farenheit", "celsius", v => (v-32)/1.8)
-CONVERSIONS.temperature.addConversion("celsius", "kelvin", v => v-273)
-CONVERSIONS.temperature.addConversion("kelvin", "celsius", v => v+273)
+CONVERSIONS.temperature.addConversion("celsius", "farenheit", v => (1.8*parseFloat(v))+32)
+CONVERSIONS.temperature.addConversion("farenheit", "celsius", v => (parseFloat(v)-32)/1.8)
+CONVERSIONS.temperature.addConversion("celsius", "kelvin", v => parseFloat(v)-273)
+CONVERSIONS.temperature.addConversion("kelvin", "celsius", v => parseFloat(v)+273)
 
 CONVERSIONS.currency.addConversionFromRatio("aed", "usd", "3.67:1")
 CONVERSIONS.currency.addConversionFromRatio("usd", "gbp", "1:0.79")
@@ -314,4 +401,25 @@ CONVERSIONS.date.addConversion("julian calendar", "gregorian calendar", function
 	return new Date(Math.round((jd - 2440587.5) * 86400000)).toISOString().split("T")[0]
 })
 
+setupPage()
 
+typeDropdown.addEventListener("change", function(){
+  clearInputs()
+  populateInputs(typeDropdown.value)
+})
+
+unit1Dropdown.addEventListener("change", function(){
+  modifyInput(unit1Dropdown.value, unit1Input)
+})
+
+unit2Dropdown.addEventListener("change", function(){
+  modifyInput(unit2Dropdown.value, unit2Input)
+})
+
+unit1Input.addEventListener("input", function(){
+  runConversion("down")
+})
+
+unit2Input.addEventListener("input", function(){
+  runConversion("up")
+})

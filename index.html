@@ -9,22 +9,21 @@
 
 <h1 class="title">Unit Converter</h1>
 
-<div class="type-container">
+<div id="type-container" class="container">
 	<label class="input-label" for="type">Type:</label>
 	<select name="type" id="type-dropdown" class="value-dropdown">
-		<option value="">ex-1</option>
 	</select>
 </div>
 
-<div class="values-container">
+<div id="values-container" class="container">
 	<div class="value-container" id="in-value-container">
-		<input type="text" name="in-value" placeholder="Enter value">
+		<input type="text" id="unit-1-input" name="unit-1-input" placeholder="Enter value">
 		<select name="in-unit" id="unit-1-dropdown" class="value-dropdown">
 			<option value="">example</option>
 		</select>
 	</div>
 	<div class="value-container" id="out-value-container">
-		<input type="text" name="out-value">
+		<input type="text" id="unit-2-input" name="unit-2-input">
 		<select name="in-unit"  id="unit-2-dropdown" class="value-dropdown">
 			<option value="">example</option>
 		</select>		
